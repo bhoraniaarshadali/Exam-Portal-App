@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">Exam-Portal-App</string>
+    <string name="app_name">Online Exam Portal</string>
+    <string name="default_web_client_id">YOUR_WEB_CLIENT_ID</string> <!-- Replace with your Firebase OAuth client ID -->
+    <string-array name="role_options">
+        <item>Student</item>
+        <item>Teacher</item>
+        <item>Admin</item>
+    </string-array>
 </resources>

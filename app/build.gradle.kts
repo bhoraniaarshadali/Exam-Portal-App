@@ -1,10 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.google.firebase.crashlytics)
 }
 
 android {
     namespace = "com.example.exam_portal_app"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.exam_portal_app"
@@ -33,10 +35,22 @@ android {
 
 dependencies {
 
+    // Google Sign-In
+    implementation(libs.play.services.auth)
+
+    // CardView
+    implementation(libs.cardview)
+    // Firebase dependencies
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)           // Authentication
+    implementation(libs.firebase.firestore)      // Firestore
+    implementation(libs.firebase.messaging)     // Notifications
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.firebase.crashlytics)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

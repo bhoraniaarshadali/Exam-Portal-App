@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "771072886988",
+    "project_id": "onlineexamsystem-b0f0d",
+    "storage_bucket": "onlineexamsystem-b0f0d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:771072886988:android:549471381641a11ee0da69",
+        "android_client_info": {
+          "package_name": "com.example.exam_portal_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrWnHjcdlC5NiGOzxNxFPyRihtnaS_d-s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

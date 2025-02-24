@@ -6,64 +6,53 @@
     android:padding="16dp">
 
     <EditText
-        android:id="@+id/emailEditText"
+        android:id="@+id/examTitleEditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Email"
-        android:inputType="textEmailAddress"
+        android:hint="Exam Title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
-        android:id="@+id/passwordEditText"
+        android:id="@+id/examDurationEditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Password"
-        android:inputType="textPassword"
+        android:hint="Duration (minutes)"
+        android:inputType="number"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/emailEditText" />
+        app:layout_constraintTop_toBottomOf="@id/examTitleEditText" />
 
-    <Button
-        android:id="@+id/loginButton"
+    <EditText
+        android:id="@+id/examStartTimeEditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Login"
+        android:hint="Start Time (yyyy-MM-dd HH:mm)"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/passwordEditText" />
+        app:layout_constraintTop_toBottomOf="@id/examDurationEditText" />
 
-    <Button
-        android:id="@+id/registerButton"
+    <EditText
+        android:id="@+id/examEndTimeEditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Register"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/loginButton" />
-
-    <Button
-        android:id="@+id/phoneLoginButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Login with Phone (OTP)"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/registerButton" />
-
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/googleSignInButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
         android:layout_marginTop="16dp"
+        android:hint="End Time (yyyy-MM-dd HH:mm)"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/phoneLoginButton" />
+        app:layout_constraintTop_toBottomOf="@id/examStartTimeEditText" />
+
+    <Button
+        android:id="@+id/scheduleExamButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Schedule Exam"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/examEndTimeEditText" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
