@@ -1,20 +1,18 @@
 package com.example.exam_portal_app;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,7 +59,7 @@ public class RegisterActivity extends AppCompatActivity {
         String name = nameEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
-        String role = roleSpinner.getSelectedItem().toString();
+        String role = roleSpinner.getSelectedItem().toString().trim().toLowerCase();
 
         if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
@@ -98,9 +96,9 @@ public class RegisterActivity extends AppCompatActivity {
         Map<String, Object> userData = new HashMap<>();
         userData.put("name", name);
         userData.put("email", user.getEmail());
-        userData.put("role", role);
 
-        db.collection("users").document(user.getUid())
+        String collection = role.substring(0, 1).toUpperCase() + role.substring(1); // e.g., "Student", "Teacher", "Admin"
+        db.collection(collection).document(user.getUid())
                 .set(userData)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Registration successful as " + role, Toast.LENGTH_SHORT).show();

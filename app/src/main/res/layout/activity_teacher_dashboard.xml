@@ -25,25 +25,27 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/examTitleEditText" />
 
-    <EditText
-        android:id="@+id/examStartTimeEditText"
+    <Button
+        android:id="@+id/examStartTimeButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Start Time (yyyy-MM-dd HH:mm)"
+        android:hint="Select Start Time"
+        android:text="Select Start Time"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/examDurationEditText" />
 
-    <EditText
-        android:id="@+id/examEndTimeEditText"
+    <Button
+        android:id="@+id/examEndTimeButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="End Time (yyyy-MM-dd HH:mm)"
+        android:hint="Select End Time"
+        android:text="Select End Time"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/examStartTimeEditText" />
+        app:layout_constraintTop_toBottomOf="@id/examStartTimeButton" />
 
     <Button
         android:id="@+id/scheduleExamButton"
@@ -53,6 +55,6 @@
         android:text="Schedule Exam"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/examEndTimeEditText" />
+        app:layout_constraintTop_toBottomOf="@id/examEndTimeButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
