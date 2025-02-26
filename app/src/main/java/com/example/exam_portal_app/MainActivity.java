@@ -3,6 +3,7 @@ package com.example.exam_portal_app;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -20,6 +21,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -105,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         Log.d(TAG, "Email login successful for user: " + user.getEmail() + ", UID: " + user.getUid());
-                        checkUserRole(user, role);
+                        checkUserRole(user, role, user.getDisplayName(), email);
                     } else {
                         Toast.makeText(this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         Log.e(TAG, "Login failed: " + task.getException().getMessage());
@@ -148,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         Log.d(TAG, "Google authentication successful for user: " + user.getEmail() + ", UID: " + user.getUid());
-                        // Prompt for role selection instead of defaulting to "student"
+                        // Prompt for role selection
                         showRoleSelectionDialog(user);
                     } else {
                         Toast.makeText(this, "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -158,14 +160,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showRoleSelectionDialog(FirebaseUser user) {
-        // This is a placeholder for a dialog to select role (Student, Teacher, Admin)
-        // You can implement a dialog or use an Activity/Fragment for role selection
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Select Role")
                 .setItems(new String[]{"Student", "Teacher", "Admin"}, (dialog, which) -> {
                     String role = new String[]{"student", "teacher", "admin"}[which];
                     Log.d(TAG, "Selected role for Google user: " + role);
-                    saveUserRole(user, role);
+                    saveUserRole(user, role, user.getDisplayName(), user.getEmail());
                 })
                 .setNegativeButton("Cancel", (dialog, which) -> {
                     Toast.makeText(this, "Role selection canceled", Toast.LENGTH_SHORT).show();
@@ -175,10 +175,10 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void saveUserRole(FirebaseUser user, String role) {
+    private void saveUserRole(FirebaseUser user, String role, String displayName, String email) {
         Map<String, Object> userData = new HashMap<>();
-        userData.put("name", user.getDisplayName() != null ? user.getDisplayName() : "Google User");
-        userData.put("email", user.getEmail());
+        userData.put("name", displayName != null ? displayName : "Google User");
+        userData.put("email", email);
 
         String collection;
         switch (role.toLowerCase()) {
@@ -195,22 +195,26 @@ public class MainActivity extends AppCompatActivity {
                 collection = "Student"; // Default to Student
                 break;
         }
-        Log.d(TAG, "Saving user " + user.getEmail() + " as " + role + " in collection: " + collection);
-        db.collection(collection).document(user.getUid())
+
+        // Generate name-based document ID
+        String normalizedName = (displayName != null ? displayName.trim() : "unknown").toLowerCase().replace(" ", "-") + "-" + email.replace("@", "-").replace(".", "-");
+        Log.d(TAG, "Saving user " + email + " as " + role + " in collection: " + collection + " with ID: " + normalizedName);
+
+        db.collection(collection).document(normalizedName)
                 .set(userData)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "User registered as " + role, Toast.LENGTH_SHORT).show();
-                    Log.d(TAG, "User registered successfully as " + role + " in collection: " + collection);
+                    Log.d(TAG, "User registered successfully as " + role + " in collection: " + collection + " with ID: " + normalizedName);
                     goToDashboard(role);
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error saving role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Error saving role for user " + user.getEmail() + " in " + collection + ": " + e.getMessage());
+                    Log.e(TAG, "Error saving role for user " + email + " in " + collection + ": " + e.getMessage());
                     mAuth.signOut();
                 });
     }
 
-    private void checkUserRole(FirebaseUser user, String selectedRole) {
+    private void checkUserRole(FirebaseUser user, String selectedRole, String displayName, String email) {
         if (user == null) {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
             Log.e(TAG, "User not authenticated during role check");
@@ -219,40 +223,42 @@ public class MainActivity extends AppCompatActivity {
 
         // Capitalize the role for collection name (e.g., "Teacher", "Student", "Admin")
         String collection = selectedRole.substring(0, 1).toUpperCase() + selectedRole.substring(1);
-        Log.d(TAG, "Checking role for user " + user.getEmail() + " in collection: " + collection + ", UID: " + user.getUid());
+        // Generate name-based document ID
+        String normalizedName = (displayName != null ? displayName.trim() : "unknown").toLowerCase().replace(" ", "-") + "-" + email.replace("@", "-").replace(".", "-");
+        Log.d(TAG, "Checking role for user " + email + " in collection: " + collection + ", ID: " + normalizedName);
 
-        db.collection(collection).document(user.getUid())
+        db.collection(collection).document(normalizedName)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         // User found in the selected role's collection
                         Map<String, Object> userData = documentSnapshot.getData();
-                        Log.d(TAG, "User " + user.getEmail() + " found in " + collection + " with data: " + userData);
+                        Log.d(TAG, "User " + email + " found in " + collection + " with data: " + userData);
 
-                        // Optionally, verify email consistency (extra safety)
+                        // Verify email consistency (extra safety)
                         String storedEmail = (String) userData.get("email");
-                        if (storedEmail != null && storedEmail.equals(user.getEmail())) {
+                        if (storedEmail != null && storedEmail.equals(email)) {
                             Toast.makeText(this, "Login successful as " + selectedRole, Toast.LENGTH_SHORT).show();
                             goToDashboard(selectedRole);
                         } else {
                             Toast.makeText(this, "Email mismatch for " + selectedRole + " role.", Toast.LENGTH_SHORT).show();
-                            Log.w(TAG, "Email mismatch for user " + user.getEmail() + " in " + collection);
+                            Log.w(TAG, "Email mismatch for user " + email + " in " + collection);
                             mAuth.signOut();
                         }
                     } else {
                         // User not found in the selected role's collection
                         Toast.makeText(this, "User not registered as " + selectedRole + ". Please register or select the correct role.", Toast.LENGTH_LONG).show();
-                        Log.d(TAG, "User " + user.getEmail() + " not found in " + collection);
+                        Log.d(TAG, "User " + email + " not found in " + collection + " with ID: " + normalizedName);
                         mAuth.signOut();
                     }
                 })
                 .addOnFailureListener(e -> {
                     if (e.getMessage().contains("PERMISSION_DENIED")) {
                         Toast.makeText(this, "Access denied: Check Firestore permissions for " + selectedRole, Toast.LENGTH_LONG).show();
-                        Log.e(TAG, "Permission denied for " + user.getEmail() + " in " + collection + ": " + e.getMessage());
+                        Log.e(TAG, "Permission denied for " + email + " in " + collection + ": " + e.getMessage());
                     } else {
                         Toast.makeText(this, "Error verifying role: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        Log.e(TAG, "Role verification failed for " + user.getEmail() + " in " + collection + ": " + e.getMessage());
+                        Log.e(TAG, "Role verification failed for " + email + " in " + collection + ": " + e.getMessage());
                     }
                     mAuth.signOut();
                 });

@@ -1,9 +1,8 @@
 package com.example.exam_portal_app;
 
-import static android.content.ContentValues.TAG;
-
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Patterns;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,6 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
+
+    private static final String TAG = "RegisterActivity";
 
     private EditText nameEditText, emailEditText, passwordEditText;
     private Spinner roleSpinner;
@@ -71,7 +72,7 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             Toast.makeText(this, "Invalid email format", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -92,6 +93,7 @@ public class RegisterActivity extends AppCompatActivity {
                         } else {
                             Toast.makeText(this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
+                        Log.e(TAG, "Registration failed for " + email + ": " + task.getException().getMessage());
                     }
                 });
     }
@@ -100,27 +102,32 @@ public class RegisterActivity extends AppCompatActivity {
         Map<String, Object> userData = new HashMap<>();
         userData.put("name", name);
         userData.put("email", user.getEmail());
+        // Removed uid field to align with name-based ID strategy
 
+        // Generate name-based document ID
+        String normalizedName = name.trim().toLowerCase().replace(" ", "-") + "-" + user.getEmail().replace("@", "-").replace(".", "-");
         String collection = role.substring(0, 1).toUpperCase() + role.substring(1);
-        db.collection(collection).document(user.getUid())
+
+        db.collection(collection).document(normalizedName)
                 .set(userData)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Registration successful as " + role + " in " + collection, Toast.LENGTH_SHORT).show();
-                    Log.d(TAG, "User registered successfully as " + role + " in " + collection);
+                    Log.d(TAG, "User registered successfully as " + role + " in " + collection + " with ID: " + normalizedName);
                     finish();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error saving details: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     Log.e(TAG, "Error saving details for user " + user.getEmail() + ": " + e.getMessage());
                     if (user != null) {
-                        user.delete();
-                        mAuth.signOut();
+                        user.delete().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                mAuth.signOut();
+                                Toast.makeText(this, "User deleted and signed out due to error", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(this, "Failed to delete user: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 });
-    }
-
-    private boolean isValidEmail(String email) {
-        String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
-        return email.matches(emailPattern);
     }
 }

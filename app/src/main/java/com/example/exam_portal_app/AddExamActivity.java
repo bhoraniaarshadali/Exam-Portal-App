@@ -3,6 +3,7 @@ package com.example.exam_portal_app;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -48,7 +49,7 @@ public class AddExamActivity extends AppCompatActivity {
             finish();
             return;
         }
-        verifyTeacherRole(user); // Async verification
+        //verifyTeacherRole(user); // Async verification
 
         // UI elements (removed examSubjectEditText as per your request)
         examTitleEditText = findViewById(R.id.examTitleEditText);
@@ -71,6 +72,8 @@ public class AddExamActivity extends AppCompatActivity {
     private void verifyTeacherRole(FirebaseUser user) {
         String email = user.getEmail();
         String normalizedName = (user.getDisplayName() != null ? user.getDisplayName().trim() : "unknown").toLowerCase().replace(" ", "-") + "-" + email.replace("@", "-").replace(".", "-");
+        String authUid = user.getUid();
+        Log.d("AddExamActivity", "Auth UID: " + authUid + ", Checking teacher role for: " + normalizedName);
 
         db.collection("Teacher").document(normalizedName).get()
                 .addOnCompleteListener(new OnCompleteListener<com.google.firebase.firestore.DocumentSnapshot>() {
@@ -78,15 +81,25 @@ public class AddExamActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<com.google.firebase.firestore.DocumentSnapshot> task) {
                         if (task.isSuccessful()) {
                             com.google.firebase.firestore.DocumentSnapshot document = task.getResult();
-                            if (document.exists() && document.getString("uid").equals(user.getUid())) {
-                                isTeacherVerified = true;
-                                submitExamButton.setEnabled(true);
-                                Toast.makeText(AddExamActivity.this, "Teacher role verified", Toast.LENGTH_SHORT).show();
+                            if (document.exists()) {
+                                String docUid = document.getString("uid");
+                                Log.d("AddExamActivity", "Document UID: " + docUid + ", Exists for: " + normalizedName);
+                                if (docUid != null && docUid.equals(authUid)) {
+                                    isTeacherVerified = true;
+                                    submitExamButton.setEnabled(true);
+                                    Toast.makeText(AddExamActivity.this, "Teacher role verified", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Log.w("AddExamActivity", "UID mismatch or null: Auth UID=" + authUid + ", Doc UID=" + docUid);
+                                    Toast.makeText(AddExamActivity.this, "Access denied. UID mismatch or not a teacher.", Toast.LENGTH_SHORT).show();
+                                    finish();
+                                }
                             } else {
+                                Log.w("AddExamActivity", "Teacher document not found for: " + normalizedName);
                                 Toast.makeText(AddExamActivity.this, "Access denied. You are not a teacher.", Toast.LENGTH_SHORT).show();
                                 finish();
                             }
                         } else {
+                            Log.e("AddExamActivity", "Error verifying role: " + task.getException().getMessage());
                             Toast.makeText(AddExamActivity.this, "Error verifying role: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                             finish();
                         }
