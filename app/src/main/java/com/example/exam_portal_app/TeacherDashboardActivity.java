@@ -3,6 +3,7 @@ package com.example.exam_portal_app;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -21,6 +22,8 @@ import java.util.Locale;
 import java.util.Map;
 
 public class TeacherDashboardActivity extends AppCompatActivity {
+
+    private static final String TAG = "TeacherDashboard"; // Log tag for debugging
 
     private EditText examTitleEditText, examDurationEditText;
     private Button examStartTimeButton, examEndTimeButton, scheduleExamButton;
@@ -43,6 +46,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
             checkTeacherRole(user);
         } else {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "User not authenticated on dashboard load");
             finish();
         }
 
@@ -62,19 +66,24 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     }
 
     private void checkTeacherRole(FirebaseUser user) {
-        String email = user.getEmail();
-        String normalizedName = (user.getDisplayName() != null ? user.getDisplayName() : "unknown").toLowerCase().replace(" ", "-") + "-" + email.replace("@", "-").replace(".", "-");
-
-        db.collection("Teacher").document(normalizedName)
+        // Use UID consistent with RegisterActivity and MainActivity
+        db.collection("Teacher").document(user.getUid())
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    if (!documentSnapshot.exists()) {
-                        Toast.makeText(this, "Access denied. You are not a teacher.", Toast.LENGTH_SHORT).show();
-                        finish(); // Exit if not a teacher
+                    if (documentSnapshot.exists()) {
+                        Log.d(TAG, "Teacher role verified for user: " + user.getEmail() + ", UID: " + user.getUid());
+                        // Teacher role confirmed, proceed with dashboard
+                    } else {
+                        Toast.makeText(this, "Access denied. You are not registered as a teacher.", Toast.LENGTH_LONG).show();
+                        Log.w(TAG, "User " + user.getEmail() + " not found in Teacher collection, UID: " + user.getUid());
+                        mAuth.signOut();
+                        finish();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error verifying role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Error verifying teacher role: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Role verification failed for " + user.getEmail() + ": " + e.getMessage());
+                    mAuth.signOut();
                     finish();
                 });
     }
@@ -87,9 +96,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
 
-        // Show DatePickerDialog first
         new DatePickerDialog(this, (datePicker, selectedYear, selectedMonth, selectedDay) -> {
-            // Then show TimePickerDialog
             new TimePickerDialog(this, (timePicker, selectedHour, selectedMinute) -> {
                 calendar.set(selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute);
                 long timeMillis = calendar.getTimeInMillis();
@@ -102,10 +109,9 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                     examEndTimeButton.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(calendar.getTime()));
                 }
 
-                // Validate that end time is after start time
                 if (startTime != 0 && endTime != 0 && endTime <= startTime) {
                     Toast.makeText(this, "End time must be after start time", Toast.LENGTH_SHORT).show();
-                    endTime = 0; // Reset end time if invalid
+                    endTime = 0;
                     examEndTimeButton.setText("Select End Time");
                 }
             }, hour, minute, true).show();
@@ -132,43 +138,46 @@ public class TeacherDashboardActivity extends AppCompatActivity {
             FirebaseUser user = mAuth.getCurrentUser();
             String email = user.getEmail();
             String displayName = user.getDisplayName() != null ? user.getDisplayName() : "Unknown Teacher";
-            String normalizedName = displayName.toLowerCase().replace(" ", "-") + "-" + email.replace("@", "-").replace(".", "-");
 
             Map<String, Object> examData = new HashMap<>();
             examData.put("title", title);
             examData.put("duration", duration);
             examData.put("start_time", startTime);
             examData.put("end_time", endTime);
-            examData.put("created_by", normalizedName); // Must match the teacher's document ID in Teacher collection
+            examData.put("created_by", user.getUid()); // Use UID here for consistency
             examData.put("teacher_name", displayName); // Human-readable name
             examData.put("max_attempts", 1);
-            examData.put("question_types", "MCQ"); // Default, expandable later
+            examData.put("question_types", "MCQ");
 
             db.collection("exams").add(examData)
                     .addOnSuccessListener(documentReference -> {
                         Toast.makeText(this, "Exam scheduled!", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Exam " + title + " scheduled by " + email + ", UID: " + user.getUid());
                         sendNotificationToStudents(title, new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(startTime));
                         clearFields();
                     })
                     .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Error scheduling exam: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Error scheduling exam: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Failed to schedule exam by " + email + ": " + e.getMessage());
                         if (e.getMessage().contains("PERMISSION_DENIED")) {
                             Toast.makeText(this, "Permission denied. Contact admin.", Toast.LENGTH_SHORT).show();
                         }
-                        e.printStackTrace();
                     });
 
         } catch (NumberFormatException e) {
             Toast.makeText(this, "Invalid duration format", Toast.LENGTH_SHORT).show();
+            Log.w(TAG, "Invalid duration input: " + durationStr);
         }
     }
 
     private void sendNotificationToStudents(String examTitle, String startTime) {
-        // For simplicity, send to a topic "students"
         FirebaseMessaging.getInstance().subscribeToTopic("students")
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Notified students about " + examTitle, Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Notification sent for exam: " + examTitle + " at " + startTime);
+                    } else {
+                        Log.w(TAG, "Failed to subscribe to students topic: " + task.getException().getMessage());
                     }
                 });
     }

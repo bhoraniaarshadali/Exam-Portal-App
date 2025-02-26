@@ -1,0 +1,23 @@
+<resources>
+
+    <style name="Widget.App.Spinner" parent="android:style/Widget.Spinner">
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="Widget.App.TextInput" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+    </style>
+
+    <style name="Widget.App.Button" parent="Widget.MaterialComponents.Button">
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <style name="Widget.App.TextView" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="Theme.ExamPortalApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Customize as needed -->
+    </style>
+</resources>

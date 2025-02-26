@@ -105,7 +105,7 @@ public class RegisterActivity extends AppCompatActivity {
         db.collection(collection).document(user.getUid())
                 .set(userData)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Registration successful as " + role, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Registration successful as " + role + " in " + collection, Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "User registered successfully as " + role + " in " + collection);
                     finish();
                 })

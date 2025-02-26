@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        Log.d(TAG, "Email login successful for user: " + user.getEmail());
+                        Log.d(TAG, "Email login successful for user: " + user.getEmail() + ", UID: " + user.getUid());
                         checkUserRole(user, role);
                     } else {
                         Toast.makeText(this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                Log.d(TAG, "Google Sign-In successful for account: " + account.getEmail());
+                Log.d(TAG, "Google Sign-In successful for account: " + account.getEmail() + ", ID Token: " + account.getIdToken());
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
                 Toast.makeText(this, "Google sign-in failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -147,13 +147,32 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        Log.d(TAG, "Google authentication successful for user: " + user.getEmail());
-                        saveUserRole(user, "student"); // Default role as student for Google Sign-In
+                        Log.d(TAG, "Google authentication successful for user: " + user.getEmail() + ", UID: " + user.getUid());
+                        // Prompt for role selection instead of defaulting to "student"
+                        showRoleSelectionDialog(user);
                     } else {
                         Toast.makeText(this, "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         Log.e(TAG, "Google authentication failed: " + task.getException().getMessage());
                     }
                 });
+    }
+
+    private void showRoleSelectionDialog(FirebaseUser user) {
+        // This is a placeholder for a dialog to select role (Student, Teacher, Admin)
+        // You can implement a dialog or use an Activity/Fragment for role selection
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Select Role")
+                .setItems(new String[]{"Student", "Teacher", "Admin"}, (dialog, which) -> {
+                    String role = new String[]{"student", "teacher", "admin"}[which];
+                    Log.d(TAG, "Selected role for Google user: " + role);
+                    saveUserRole(user, role);
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    Toast.makeText(this, "Role selection canceled", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Role selection canceled for Google user: " + user.getEmail());
+                    mAuth.signOut();
+                })
+                .show();
     }
 
     private void saveUserRole(FirebaseUser user, String role) {
@@ -176,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
                 collection = "Student"; // Default to Student
                 break;
         }
+        Log.d(TAG, "Saving user " + user.getEmail() + " as " + role + " in collection: " + collection);
         db.collection(collection).document(user.getUid())
                 .set(userData)
                 .addOnSuccessListener(aVoid -> {
@@ -185,34 +205,57 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error saving role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Error saving role for user " + user.getEmail() + ": " + e.getMessage());
+                    Log.e(TAG, "Error saving role for user " + user.getEmail() + " in " + collection + ": " + e.getMessage());
+                    mAuth.signOut();
                 });
     }
 
     private void checkUserRole(FirebaseUser user, String selectedRole) {
-        if (user != null) {
-            String collection = selectedRole.substring(0, 1).toUpperCase() + selectedRole.substring(1);
-            db.collection(collection).document(user.getUid())
-                    .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            Log.d(TAG, "User " + user.getEmail() + " found in " + collection + " collection");
-                            goToDashboard(selectedRole);
-                        } else {
-                            Toast.makeText(this, "User not found in " + selectedRole + " role. Please register.", Toast.LENGTH_SHORT).show();
-                            Log.d(TAG, "User " + user.getEmail() + " not found in " + collection + " collection");
-                            mAuth.signOut();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Role verification failed. Please try again.", Toast.LENGTH_SHORT).show();
-                        Log.e(TAG, "Role verification failed for user " + user.getEmail() + ": " + e.getMessage());
-                        mAuth.signOut();
-                    });
-        } else {
+        if (user == null) {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
             Log.e(TAG, "User not authenticated during role check");
+            return;
         }
+
+        // Capitalize the role for collection name (e.g., "Teacher", "Student", "Admin")
+        String collection = selectedRole.substring(0, 1).toUpperCase() + selectedRole.substring(1);
+        Log.d(TAG, "Checking role for user " + user.getEmail() + " in collection: " + collection + ", UID: " + user.getUid());
+
+        db.collection(collection).document(user.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // User found in the selected role's collection
+                        Map<String, Object> userData = documentSnapshot.getData();
+                        Log.d(TAG, "User " + user.getEmail() + " found in " + collection + " with data: " + userData);
+
+                        // Optionally, verify email consistency (extra safety)
+                        String storedEmail = (String) userData.get("email");
+                        if (storedEmail != null && storedEmail.equals(user.getEmail())) {
+                            Toast.makeText(this, "Login successful as " + selectedRole, Toast.LENGTH_SHORT).show();
+                            goToDashboard(selectedRole);
+                        } else {
+                            Toast.makeText(this, "Email mismatch for " + selectedRole + " role.", Toast.LENGTH_SHORT).show();
+                            Log.w(TAG, "Email mismatch for user " + user.getEmail() + " in " + collection);
+                            mAuth.signOut();
+                        }
+                    } else {
+                        // User not found in the selected role's collection
+                        Toast.makeText(this, "User not registered as " + selectedRole + ". Please register or select the correct role.", Toast.LENGTH_LONG).show();
+                        Log.d(TAG, "User " + user.getEmail() + " not found in " + collection);
+                        mAuth.signOut();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (e.getMessage().contains("PERMISSION_DENIED")) {
+                        Toast.makeText(this, "Access denied: Check Firestore permissions for " + selectedRole, Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Permission denied for " + user.getEmail() + " in " + collection + ": " + e.getMessage());
+                    } else {
+                        Toast.makeText(this, "Error verifying role: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Role verification failed for " + user.getEmail() + " in " + collection + ": " + e.getMessage());
+                    }
+                    mAuth.signOut();
+                });
     }
 
     private void goToDashboard(String role) {

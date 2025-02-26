@@ -7,6 +7,7 @@
 
     <EditText
         android:id="@+id/nameEditText"
+        style="@style/Widget.App.TextInput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Full Name"
@@ -16,6 +17,7 @@
 
     <EditText
         android:id="@+id/emailEditText"
+        style="@style/Widget.App.TextInput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -27,6 +29,7 @@
 
     <EditText
         android:id="@+id/passwordEditText"
+        style="@style/Widget.App.TextInput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -38,6 +41,7 @@
 
     <Spinner
         android:id="@+id/roleSpinner"
+        style="@style/Widget.App.Spinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -47,6 +51,7 @@
 
     <Button
         android:id="@+id/submitRegisterButton"
+        style="@style/Widget.App.Button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"

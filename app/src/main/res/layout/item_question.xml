@@ -7,6 +7,7 @@
 
     <TextView
         android:id="@+id/questionTextView"
+        style="@style/Widget.App.TextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Question Text"
@@ -27,6 +28,7 @@
 
     <EditText
         android:id="@+id/subjectiveAnswerEditText"
+        style="@style/Widget.App.TextInput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"

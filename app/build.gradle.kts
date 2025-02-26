@@ -35,6 +35,8 @@ android {
 
 dependencies {
 
+    implementation(libs.recyclerview)
+
     // Google Sign-In
     implementation(libs.play.services.auth)
 
