@@ -1,6 +1,5 @@
 package com.example.exam_portal_app;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -31,13 +30,20 @@ public class StudentDashboardActivity extends AppCompatActivity implements ExamA
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Set up RecyclerView
+        // Verify user is authenticated before proceeding
+        if (mAuth.getCurrentUser() == null) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // UI elements
         examsRecyclerView = findViewById(R.id.examsRecyclerView);
         examsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        examAdapter = new ExamAdapter(this);
+        examAdapter = new ExamAdapter(this); // Pass this activity as the listener
         examsRecyclerView.setAdapter(examAdapter);
 
-        // Fetch exams
+        // Load available exams
         loadAvailableExams();
     }
 
@@ -50,16 +56,18 @@ public class StudentDashboardActivity extends AppCompatActivity implements ExamA
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         String id = document.getId();
                         String title = document.getString("title");
-                        int duration = document.getLong("duration").intValue();
                         long startTime = document.getLong("start_time");
                         long endTime = document.getLong("end_time");
-                        String createdBy = document.getString("created_by"); // Normalized name-based ID
-                        String teacherName = document.getString("teacher_name"); // Full teacher name
+                        int duration = document.getLong("duration").intValue();
+                        String createdBy = document.getString("created_by");
+                        String teacherName = document.getString("teacher_name");
                         int maxAttempts = document.getLong("max_attempts").intValue();
                         String questionTypes = document.getString("question_types");
+                        List<String> questions = (List<String>) document.get("questions"); // Retrieve questions field
 
-                        // updated after login & registration as per parameter requirement
-                        examList.add(new Exam(id, title, startTime, endTime, duration, createdBy, teacherName, maxAttempts, questionTypes, questions));
+                        // Create Exam object with all parameters
+                        Exam exam = new Exam(id, title, startTime, endTime, duration, createdBy, teacherName, maxAttempts, questionTypes, questions);
+                        examList.add(exam);
                     }
                     examAdapter.setExamList(examList);
                 })
@@ -68,13 +76,8 @@ public class StudentDashboardActivity extends AppCompatActivity implements ExamA
 
     @Override
     public void onExamStart(Exam exam) {
-        long now = System.currentTimeMillis();
-        if (now >= exam.getStartTime() && now <= exam.getEndTime()) {
-            Intent intent = new Intent(this, ExamActivity.class);
-            intent.putExtra("exam", exam);
-            startActivity(intent);
-        } else {
-            Toast.makeText(this, "Exam not available yet or has ended", Toast.LENGTH_SHORT).show();
-        }
+        // Handle exam start (e.g., navigate to ExamActivity)
+        Toast.makeText(this, "Starting exam: " + exam.getTitle(), Toast.LENGTH_SHORT).show();
+        // Add navigation logic here (e.g., start ExamActivity with exam data)
     }
 }

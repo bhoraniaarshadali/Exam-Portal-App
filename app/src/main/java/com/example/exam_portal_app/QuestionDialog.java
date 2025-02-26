@@ -10,9 +10,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,11 +27,6 @@ public class QuestionDialog extends Dialog {
     private List<EditText> optionEditTexts = new ArrayList<>();
     private Button saveButton, deleteButton, addOptionButton;
     private LinearLayout optionsContainer; // Explicitly typed as LinearLayout
-
-    public interface OnQuestionSavedListener {
-        void onQuestionSaved(Question question);
-        void onQuestionDeleted(Question question);
-    }
 
     public QuestionDialog(@NonNull Context context, Question question, OnQuestionSavedListener listener) {
         super(context);
@@ -100,7 +96,8 @@ public class QuestionDialog extends Dialog {
             }
 
             @Override
-            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+            }
         });
 
         addOptionButton.setOnClickListener(v -> addOption());
@@ -194,5 +191,11 @@ public class QuestionDialog extends Dialog {
         );
         listener.onQuestionSaved(newQuestion);
         dismiss();
+    }
+
+    public interface OnQuestionSavedListener {
+        void onQuestionSaved(Question question);
+
+        void onQuestionDeleted(Question question);
     }
 }
