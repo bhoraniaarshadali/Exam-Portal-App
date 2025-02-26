@@ -1,85 +1,82 @@
 package com.example.exam_portal_app;
 
+import android.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
+import android.widget.Button;
 import android.widget.TextView;
-
-import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.QuestionViewHolder> {
 
     private List<Question> questions;
+    private OnQuestionClickListener listener;
+    private final AppCompatActivity activity;
 
-    public QuestionAdapter(List<Question> questions) {
-        this.questions = questions;
+    public interface OnQuestionClickListener {
+        void onQuestionClick(Question question);
     }
 
-    @NonNull
+    public QuestionAdapter(OnQuestionClickListener listener, AppCompatActivity activity) {
+        this.questions = new ArrayList<>();
+        this.listener = listener;
+        this.activity = activity;
+    }
+
+    public void setQuestions(List<Question> questions) {
+        this.questions = questions;
+        notifyDataSetChanged();
+    }
+
+    public void addQuestion(Question question) {
+        this.questions.add(question);
+        notifyItemInserted(questions.size() - 1);
+    }
+
+    public void updateQuestion(Question question) {
+        int index = questions.indexOf(question);
+        if (index >= 0) {
+            questions.set(index, question);
+            notifyItemChanged(index);
+        }
+    }
+
+    public void removeQuestion(Question question) {
+        int index = questions.indexOf(question);
+        if (index >= 0) {
+            questions.remove(index);
+            notifyItemRemoved(index);
+        }
+    }
+
     @Override
-    public QuestionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public QuestionViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_question, parent, false);
         return new QuestionViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull QuestionViewHolder holder, int position) {
+    public void onBindViewHolder(QuestionViewHolder holder, int position) {
         Question question = questions.get(position);
-        holder.questionTextView.setText((position + 1) + ". " + question.getText());
+        holder.questionTextView.setText(question.getQuestionText());
+        holder.detailsTextView.setText("Type: " + question.getType() + "\n" +
+                (question.getOptions() != null ? "Options: " + String.join(", ", question.getOptions()) : "") +
+                (question.getCorrectAnswer() != null ? "\nCorrect Answer: " + question.getCorrectAnswer() : "") +
+                (question.getCodeTemplate() != null ? "\nCode Template: " + question.getCodeTemplate() : ""));
 
-        // Clear previous views
-        holder.radioGroup.removeAllViews();
-
-        if ("MCQ".equals(question.getType())) {
-            holder.radioGroup.setVisibility(View.VISIBLE);
-            holder.subjectiveAnswerEditText.setVisibility(View.GONE);
-
-            String[] options = question.getOptions();
-            if (options != null) {
-                for (int i = 0; i < options.length; i++) {
-                    RadioButton radioButton = new RadioButton(holder.itemView.getContext());
-                    radioButton.setId(View.generateViewId());
-                    radioButton.setText(options[i]);
-                    holder.radioGroup.addView(radioButton);
-
-                    // Check if this option was previously selected
-                    if (options[i].equals(question.getUserAnswer())) {
-                        radioButton.setChecked(true);
-                    }
-                }
-            }
-
-            // Set listener for radio button selection
-            holder.radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-                RadioButton selectedButton = holder.itemView.findViewById(checkedId);
-                if (selectedButton != null) {
-                    question.setUserAnswer(selectedButton.getText().toString());
-                }
-            });
-        } else if ("subjective".equals(question.getType())) {
-            holder.radioGroup.setVisibility(View.GONE);
-            holder.subjectiveAnswerEditText.setVisibility(View.VISIBLE);
-
-            // Set previous answer if exists
-            holder.subjectiveAnswerEditText.setText(question.getUserAnswer());
-
-            // Set listener for text changes
-            holder.subjectiveAnswerEditText.setOnFocusChangeListener((v, hasFocus) -> {
-                if (!hasFocus) {
-                    question.setUserAnswer(holder.subjectiveAnswerEditText.getText().toString());
-                }
-            });
-        } else {
-            // Default to MCQ if type is not recognized
-            holder.radioGroup.setVisibility(View.VISIBLE);
-            holder.subjectiveAnswerEditText.setVisibility(View.GONE);
-        }
+        holder.editButton.setOnClickListener(v -> listener.onQuestionClick(question));
+        holder.deleteButton.setOnClickListener(v -> {
+            new AlertDialog.Builder(activity)
+                    .setTitle("Delete Question")
+                    .setMessage("Are you sure you want to delete this question?")
+                    .setPositiveButton("Yes", (dialog, which) -> listener.onQuestionClick(question))
+                    .setNegativeButton("No", null)
+                    .show();
+        });
     }
 
     @Override
@@ -88,15 +85,15 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Questi
     }
 
     static class QuestionViewHolder extends RecyclerView.ViewHolder {
-        TextView questionTextView;
-        RadioGroup radioGroup;
-        EditText subjectiveAnswerEditText;
+        TextView questionTextView, detailsTextView;
+        Button editButton, deleteButton;
 
         QuestionViewHolder(View itemView) {
             super(itemView);
             questionTextView = itemView.findViewById(R.id.questionTextView);
-            radioGroup = itemView.findViewById(R.id.radioGroup);
-            subjectiveAnswerEditText = itemView.findViewById(R.id.subjectiveAnswerEditText);
+            detailsTextView = itemView.findViewById(R.id.detailsTextView);
+            editButton = itemView.findViewById(R.id.editButton);
+            deleteButton = itemView.findViewById(R.id.deleteButton);
         }
     }
 }

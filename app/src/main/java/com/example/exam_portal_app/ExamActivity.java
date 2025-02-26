@@ -1,20 +1,17 @@
 package com.example.exam_portal_app;
 
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,17 +19,14 @@ import java.util.Map;
 
 public class ExamActivity extends AppCompatActivity {
 
-    private static final String TAG = "ExamActivity";
-
-    private TextView examTitleTextView, timeRemainingTextView;
-    private RecyclerView questionsRecyclerView;
+    private TextView examTitleTextView;
+    private LinearLayout questionsLayout;
     private Button submitExamButton;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private CountDownTimer countDownTimer;
     private Exam exam;
     private List<Question> questions = new ArrayList<>();
-    private QuestionAdapter questionAdapter;
+    private Map<String, String> userAnswers = new HashMap<>(); // Track user answers (questionId -> answer)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,139 +39,106 @@ public class ExamActivity extends AppCompatActivity {
 
         // UI elements
         examTitleTextView = findViewById(R.id.examTitleTextView);
-        timeRemainingTextView = findViewById(R.id.timeRemainingTextView);
-        questionsRecyclerView = findViewById(R.id.questionsRecyclerView);
+        questionsLayout = findViewById(R.id.questionsLayout);
         submitExamButton = findViewById(R.id.submitExamButton);
 
-        // Get exam data from intent
+        // Get exam from intent
         exam = (Exam) getIntent().getSerializableExtra("exam");
-        if (exam == null) {
-            Toast.makeText(this, "Exam data not found", Toast.LENGTH_SHORT).show();
+        if (exam == null || exam.getId() == null) {
+            Toast.makeText(this, "Invalid exam data", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        examTitleTextView.setText(exam.getTitle());
-        startTimer(exam.getDuration() * 60 * 1000); // Convert minutes to milliseconds
-
-        // Set up RecyclerView for questions
-        questionsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        questionAdapter = new QuestionAdapter(questions);
-        questionsRecyclerView.setAdapter(questionAdapter);
-
+        // Load and display exam details and questions
+        loadExamDetails();
         loadQuestions();
+        setupSubmitButton();
+    }
 
-        submitExamButton.setOnClickListener(v -> submitExam());
+    private void loadExamDetails() {
+        examTitleTextView.setText(exam.getTitle());
     }
 
     private void loadQuestions() {
-        db.collection("exams").document(exam.getId())
-                .collection("questions")
+        db.collection("questions")
+                .whereEqualTo("examId", exam.getId())
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        // Fallback to sample questions if none exist in the database
-                        addSampleQuestions();
-                    } else {
-                        questions.clear();
-                        for (int i = 0; i < queryDocumentSnapshots.size(); i++) {
-                            Question question = queryDocumentSnapshots.getDocuments().get(i).toObject(Question.class);
-                            questions.add(question);
-                        }
+                    questions.clear();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Question question = document.toObject(Question.class);
+                        questions.add(question);
+                        displayQuestion(question);
                     }
-                    questionAdapter.notifyDataSetChanged();
+                    if (questions.isEmpty()) {
+                        Toast.makeText(this, "No questions found for this exam", Toast.LENGTH_SHORT).show();
+                    }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading questions: " + e.getMessage());
-                    addSampleQuestions();
+                .addOnFailureListener(e -> Toast.makeText(this, "Error loading questions: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private void displayQuestion(Question question) {
+        View questionView = LayoutInflater.from(this).inflate(R.layout.item_exam_question, questionsLayout, false);
+
+        TextView questionText = questionView.findViewById(R.id.questionText);
+        questionText.setText(question.getQuestionText());
+
+        if ("MCQ".equals(question.getType())) {
+            LinearLayout optionsLayout = questionView.findViewById(R.id.optionsLayout);
+            for (String option : question.getOptions()) {
+                Button optionButton = new Button(this);
+                optionButton.setText(option);
+                optionButton.setOnClickListener(v -> {
+                    userAnswers.put(question.getId(), option);
+                    Toast.makeText(this, "Selected: " + option, Toast.LENGTH_SHORT).show();
                 });
+                optionsLayout.addView(optionButton);
+            }
+        } else if ("subjective".equals(question.getType())) {
+            EditText answerEditText = questionView.findViewById(R.id.answerEditText);
+            answerEditText.setVisibility(View.VISIBLE);
+            answerEditText.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus) {
+                    userAnswers.put(question.getId(), answerEditText.getText().toString().trim());
+                }
+            });
+        } else if ("coding".equals(question.getType())) {
+            EditText codeEditText = questionView.findViewById(R.id.codeEditText);
+            codeEditText.setVisibility(View.VISIBLE);
+            codeEditText.setText(question.getCodeTemplate());
+            codeEditText.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus) {
+                    userAnswers.put(question.getId(), codeEditText.getText().toString().trim());
+                }
+            });
+        }
+
+        questionsLayout.addView(questionView);
     }
 
-    private void addSampleQuestions() {
-        // Sample questions as fallback
-        questions.clear();
-        questions.add(new Question("1", "What is 2 + 2?", "MCQ", new String[]{"3", "4", "5", "6"}, "4"));
-        questions.add(new Question("2", "What is the capital of France?", "MCQ", new String[]{"London", "Berlin", "Paris", "Madrid"}, "Paris"));
-        questions.add(new Question("3", "Which of these is a programming language?", "MCQ", new String[]{"HTML", "CSS", "Java", "All of the above"}, "All of the above"));
-        questionAdapter.notifyDataSetChanged();
-    }
-
-    private void startTimer(long millisInFuture) {
-        countDownTimer = new CountDownTimer(millisInFuture, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                long minutes = millisUntilFinished / 1000 / 60;
-                long seconds = (millisUntilFinished / 1000) % 60;
-                timeRemainingTextView.setText(String.format("Time Remaining: %02d:%02d", minutes, seconds));
-            }
-
-            @Override
-            public void onFinish() {
-                timeRemainingTextView.setText("Time's up!");
-                submitExam();
-            }
-        }.start();
+    private void setupSubmitButton() {
+        submitExamButton.setOnClickListener(v -> submitExam());
     }
 
     private void submitExam() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
-            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
-            finish();
+        if (userAnswers.isEmpty()) {
+            Toast.makeText(this, "Please answer all questions", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Calculate score for MCQ questions
-        int correctAnswers = 0;
-        int totalQuestions = 0;
+        String studentId = mAuth.getCurrentUser().getUid();
+        Map<String, Object> attemptData = new HashMap<>();
+        attemptData.put("student_id", studentId);
+        attemptData.put("exam_id", exam.getId());
+        attemptData.put("answers", userAnswers);
+        attemptData.put("timestamp", System.currentTimeMillis());
 
-        for (Question question : questions) {
-            if ("MCQ".equals(question.getType())) {
-                totalQuestions++;
-                if (question.isCorrect()) {
-                    correctAnswers++;
-                }
-            }
-        }
-
-        double score = totalQuestions > 0 ? (correctAnswers * 100.0 / totalQuestions) : 0;
-
-        // Save submission to Firestore
-        Map<String, Object> submission = new HashMap<>();
-        submission.put("exam_id", exam.getId());
-        submission.put("user_id", user.getUid());
-        submission.put("timestamp", System.currentTimeMillis());
-        submission.put("score", score);
-        submission.put("correct_answers", correctAnswers);
-        submission.put("total_questions", totalQuestions);
-
-        db.collection("submissions").add(submission)
+        db.collection("student_attempts").add(attemptData)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(this, "Exam submitted successfully!", Toast.LENGTH_SHORT).show();
-                    // Save each answer
-                    for (int i = 0; i < questions.size(); i++) {
-                        Question question = questions.get(i);
-                        Map<String, Object> answerData = new HashMap<>();
-                        answerData.put("question_id", question.getId());
-                        answerData.put("user_answer", question.getUserAnswer());
-                        answerData.put("is_correct", question.isCorrect());
-
-                        db.collection("submissions").document(documentReference.getId())
-                                .collection("answers").add(answerData);
-                    }
                     finish();
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error submitting exam: " + e.getMessage());
-                    Toast.makeText(this, "Error submitting exam. Please try again.", Toast.LENGTH_SHORT).show();
-                });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (countDownTimer != null) {
-            countDownTimer.cancel();
-        }
+                .addOnFailureListener(e -> Toast.makeText(this, "Error submitting exam: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

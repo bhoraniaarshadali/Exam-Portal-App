@@ -58,8 +58,8 @@ public class StudentDashboardActivity extends AppCompatActivity implements ExamA
                         int maxAttempts = document.getLong("max_attempts").intValue();
                         String questionTypes = document.getString("question_types");
 
-                        // Create Exam object with all 9 parameters
-                        examList.add(new Exam(id, title, startTime, endTime, duration, createdBy, teacherName, maxAttempts, questionTypes));
+                        // updated after login & registration as per parameter requirement
+                        examList.add(new Exam(id, title, startTime, endTime, duration, createdBy, teacherName, maxAttempts, questionTypes, questions));
                     }
                     examAdapter.setExamList(examList);
                 })

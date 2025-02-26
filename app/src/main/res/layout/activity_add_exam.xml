@@ -30,7 +30,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Select Start Time"
         android:text="Select Start Time"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -41,40 +40,19 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Select End Time"
         android:text="Select End Time"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/examStartTimeButton" />
-
-    <EditText
-        android:id="@+id/examSubjectEditText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Subject"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/examEndTimeButton" />
+        app:layout_constraintStart_toStartOf= "parent"
+    app:layout_constraintTop_toBottomOf ="@id/examStartTimeButton" />
 
     <Button
-        android:id="@+id/scheduleExamButton"
+        android:id="@+id/submitExamButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Schedule Exam"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/examSubjectEditText" />
-
-    <Button
-        android:id="@+id/manageQuestionsButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Manage Questions"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/scheduleExamButton" />
+        android:text="Submit Exam"
+        app:layout_constraintEnd_toEndOf ="parent"
+    app:layout_constraintStart_toStartOf= "parent"
+    app:layout_constraintTop_toBottomOf ="@id/examEndTimeButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,91 +1,56 @@
 package com.example.exam_portal_app;
 
 import java.io.Serializable;
-import java.util.Arrays;
+import java.util.List;
 
 public class Question implements Serializable {
     private String id;
-    private String text;
+    private String questionText;
     private String type; // "MCQ", "subjective", "coding"
-    private String[] options; // For MCQs
-    private String correctAnswer; // For MCQs
-    private String userAnswer; // To store the user's answer
+    private List<String> options; // For MCQ questions
+    private String correctAnswer; // For MCQ/subjective questions
+    private String codeTemplate; // For coding questions
+    private String examId;
 
-    public Question() {
-        // Required empty constructor for Firestore
-    }
+    public Question() {}
 
-    public Question(String id, String text, String type, String[] options, String correctAnswer) {
+    public Question(String id, String questionText, String type, List<String> options, String correctAnswer, String codeTemplate, String examId) {
         this.id = id;
-        this.text = text;
+        this.questionText = questionText;
         this.type = type;
         this.options = options;
         this.correctAnswer = correctAnswer;
-        this.userAnswer = "";
+        this.codeTemplate = codeTemplate;
+        this.examId = examId;
     }
 
-    // Getters and setters
-    public String getId() {
-        return id;
+    // Getters
+    public String getId() { return id; }
+    public String getQuestionText() { return questionText; }
+    public String getType() { return type; }
+    public List<String> getOptions() { return options; }
+    public String getCorrectAnswer() { return correctAnswer; }
+    public String getCodeTemplate() { return codeTemplate; }
+    public String getExamId() { return examId; }
+
+    // Setters
+    public void setId(String id) { this.id = id; }
+    public void setQuestionText(String questionText) { this.questionText = questionText; }
+    public void setType(String type) { this.type = type; }
+    public void setOptions(List<String> options) { this.options = options; }
+    public void setCorrectAnswer(String correctAnswer) { this.correctAnswer = correctAnswer; }
+    public void setCodeTemplate(String codeTemplate) { this.codeTemplate = codeTemplate; }
+    public void setExamId(String examId) { this.examId = examId; }
+
+    // Method to check if an answer is correct (for MCQ/subjective)
+    public boolean isCorrect(String userAnswer) {
+        if (userAnswer == null || correctAnswer == null) return false;
+        return correctAnswer.trim().equalsIgnoreCase(userAnswer.trim());
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String[] getOptions() {
-        return options;
-    }
-
-    public void setOptions(String[] options) {
-        this.options = options;
-    }
-
-    public String getCorrectAnswer() {
-        return correctAnswer;
-    }
-
-    public void setCorrectAnswer(String correctAnswer) {
-        this.correctAnswer = correctAnswer;
-    }
-
+    // Method to get user answer (placeholder, can be expanded)
     public String getUserAnswer() {
-        return userAnswer;
-    }
-
-    public void setUserAnswer(String userAnswer) {
-        this.userAnswer = userAnswer;
-    }
-
-    // Helper method to check if answer is correct
-    public boolean isCorrect() {
-        return userAnswer != null && userAnswer.equals(correctAnswer);
-    }
-
-    @Override
-    public String toString() {
-        return "Question{" +
-                "id='" + id + '\'' +
-                ", text='" + text + '\'' +
-                ", type='" + type + '\'' +
-                ", options=" + Arrays.toString(options) +
-                ", correctAnswer='" + correctAnswer + '\'' +
-                '}';
+        // This could be implemented to retrieve user-submitted answers from a data store or UI
+        return null; // Default to null; update based on your needs
     }
 }

@@ -6,6 +6,12 @@
         <item>Teacher</item>
         <item>Admin</item>
     </string-array>
-    <!-- TODO: Remove or change this placeholder text -->
+
+    <string-array name="question_types">
+        <item>MCQ</item>
+        <item>Subjective</item>
+        <item>Coding</item>
+    </string-array>
+
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

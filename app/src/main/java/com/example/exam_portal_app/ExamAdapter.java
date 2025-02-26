@@ -6,10 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,33 +47,34 @@ public class ExamAdapter extends RecyclerView.Adapter<ExamAdapter.ExamViewHolder
         String teacherName = exam.getTeacher_name();
         holder.teacherNameTextView.setText("Created by: " + (teacherName != null ? teacherName : "Unknown"));
 
-        // Format questions count
-        //holder.questionsTextView.setText(context.getString(R.string.questions_count_format, "Multiple"));
+        // Display questions count
+        holder.questionsTextView.setText("Questions: " + (exam.getQuestions() != null ? exam.getQuestions().size() : 0));
 
-        // Format duration
-        //holder.durationTextView.setText(context.getString(R.string.duration_format, exam.getDuration()));
+        // Display duration
+        holder.durationTextView.setText("Duration: " + exam.getDuration() + " min");
 
-        // Format examinees count (placeholder for now)
-        //holder.examineesTextView.setText(context.getString(R.string.examinees_count_format, "--"));
-
-        // Format start time
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault());
+        // Format and display start time
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
         String startTime = sdf.format(new Date(exam.getStartTime()));
         holder.startTimeTextView.setText("Starts: " + startTime);
+
+        // Format and display end time
+        String endTime = sdf.format(new Date(exam.getEndTime()));
+        holder.endTimeTextView.setText("Ends: " + endTime);
 
         // Set button state based on exam status
         long now = System.currentTimeMillis();
         if (now < exam.getStartTime()) {
             // Exam hasn't started yet
-            //holder.startExamButton.setText(R.string.upcoming);
+            holder.startExamButton.setText("Upcoming");
             holder.startExamButton.setEnabled(false);
         } else if (now > exam.getEndTime()) {
             // Exam has ended
-            //holder.startExamButton.setText(R.string.expired);
+            holder.startExamButton.setText("Expired");
             holder.startExamButton.setEnabled(false);
         } else {
             // Exam is active
-            //holder.startExamButton.setText(R.string.start_exam);
+            holder.startExamButton.setText("Start");
             holder.startExamButton.setEnabled(true);
             holder.startExamButton.setOnClickListener(v -> listener.onExamStart(exam));
         }
@@ -92,7 +91,7 @@ public class ExamAdapter extends RecyclerView.Adapter<ExamAdapter.ExamViewHolder
 
     static class ExamViewHolder extends RecyclerView.ViewHolder {
         TextView examTitleTextView, teacherNameTextView, questionsTextView,
-                durationTextView, examineesTextView, startTimeTextView;
+                durationTextView, startTimeTextView, endTimeTextView;
         Button startExamButton;
 
         ExamViewHolder(View itemView) {
@@ -101,8 +100,8 @@ public class ExamAdapter extends RecyclerView.Adapter<ExamAdapter.ExamViewHolder
             teacherNameTextView = itemView.findViewById(R.id.teacherNameTextView);
             questionsTextView = itemView.findViewById(R.id.questionsTextView);
             durationTextView = itemView.findViewById(R.id.durationTextView);
-            examineesTextView = itemView.findViewById(R.id.examineesTextView);
             startTimeTextView = itemView.findViewById(R.id.startTimeTextView);
+            endTimeTextView = itemView.findViewById(R.id.endTimeTextView);
             startExamButton = itemView.findViewById(R.id.startExamButton);
         }
     }

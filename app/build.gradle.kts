@@ -34,6 +34,16 @@ android {
 }
 
 dependencies {
+    implementation (libs.cardview)
+    implementation (libs.material)
+    implementation (libs.google.firebase.auth)
+    implementation (libs.google.firebase.firestore)
+    implementation (libs.cardview)
+    implementation (libs.material.v190)
+    implementation (libs.viewpager2)
+    implementation (libs.google.firebase.auth)
+    implementation (libs.google.firebase.firestore)
+    implementation (libs.google.firebase.messaging)
 
     implementation(libs.recyclerview)
 
