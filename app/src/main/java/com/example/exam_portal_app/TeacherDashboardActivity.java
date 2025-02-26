@@ -3,15 +3,17 @@ package com.example.exam_portal_app;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -60,7 +62,10 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     }
 
     private void checkTeacherRole(FirebaseUser user) {
-        db.collection("Teacher").document(user.getUid())
+        String email = user.getEmail();
+        String normalizedName = (user.getDisplayName() != null ? user.getDisplayName() : "unknown").toLowerCase().replace(" ", "-") + "-" + email.replace("@", "-").replace(".", "-");
+
+        db.collection("Teacher").document(normalizedName)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (!documentSnapshot.exists()) {
@@ -124,12 +129,18 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 return;
             }
 
+            FirebaseUser user = mAuth.getCurrentUser();
+            String email = user.getEmail();
+            String displayName = user.getDisplayName() != null ? user.getDisplayName() : "Unknown Teacher";
+            String normalizedName = displayName.toLowerCase().replace(" ", "-") + "-" + email.replace("@", "-").replace(".", "-");
+
             Map<String, Object> examData = new HashMap<>();
             examData.put("title", title);
             examData.put("duration", duration);
             examData.put("start_time", startTime);
             examData.put("end_time", endTime);
-            examData.put("created_by", mAuth.getCurrentUser().getUid());
+            examData.put("created_by", normalizedName); // Must match the teacher's document ID in Teacher collection
+            examData.put("teacher_name", displayName); // Human-readable name
             examData.put("max_attempts", 1);
             examData.put("question_types", "MCQ"); // Default, expandable later
 

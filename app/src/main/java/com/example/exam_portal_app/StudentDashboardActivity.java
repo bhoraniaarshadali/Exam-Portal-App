@@ -38,29 +38,32 @@ public class StudentDashboardActivity extends AppCompatActivity implements ExamA
         examsRecyclerView.setAdapter(examAdapter);
 
         // Fetch exams
-        loadUpcomingExams();
+        loadAvailableExams();
     }
 
-    private void loadUpcomingExams() {
+    private void loadAvailableExams() {
         db.collection("exams")
-                .whereGreaterThan("end_time", System.currentTimeMillis()) // Only show future exams
+                .whereGreaterThan("end_time", System.currentTimeMillis())
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Exam> examList = new ArrayList<>();
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         String id = document.getId();
                         String title = document.getString("title");
+                        int duration = document.getLong("duration").intValue();
                         long startTime = document.getLong("start_time");
                         long endTime = document.getLong("end_time");
-                        int duration = document.getLong("duration").intValue();
-                        String createdBy = document.getString("created_by");
+                        String createdBy = document.getString("created_by"); // Normalized name-based ID
+                        String teacherName = document.getString("teacher_name"); // Full teacher name
                         int maxAttempts = document.getLong("max_attempts").intValue();
                         String questionTypes = document.getString("question_types");
-                        examList.add(new Exam(id, title, startTime, endTime, duration, createdBy, maxAttempts, questionTypes));
+
+                        // Create Exam object with all 9 parameters
+                        examList.add(new Exam(id, title, startTime, endTime, duration, createdBy, teacherName, maxAttempts, questionTypes));
                     }
                     examAdapter.setExamList(examList);
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Error loading exams: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(this, "Error loading available exams: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     @Override

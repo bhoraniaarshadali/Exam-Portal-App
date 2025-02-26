@@ -8,7 +8,9 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -21,12 +23,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int RC_SIGN_IN = 9001;
+    private static final String TAG = "MainActivity"; // Log tag
 
     private EditText emailEditText, passwordEditText;
     private RadioGroup roleRadioGroup;
@@ -44,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
         // Manually initialize Firebase
         if (FirebaseApp.getApps(this).isEmpty()) {
             FirebaseApp.initializeApp(this);
+            Log.d(TAG, "Firebase initialized manually");
         }
 
         // Initialize Firebase services
@@ -53,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         // UI elements
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
-        roleRadioGroup = findViewById(R.id.roleRadioGroup); // Add radio group
+        roleRadioGroup = findViewById(R.id.roleRadioGroup);
         loginButton = findViewById(R.id.loginButton);
         registerButton = findViewById(R.id.registerButton);
         phoneLoginButton = findViewById(R.id.phoneLoginButton);
@@ -69,7 +74,10 @@ public class MainActivity extends AppCompatActivity {
         // Button clicks
         loginButton.setOnClickListener(v -> loginUser());
         registerButton.setOnClickListener(v -> startRegisterActivity());
-        phoneLoginButton.setOnClickListener(v -> Toast.makeText(this, "Phone OTP coming soon!", Toast.LENGTH_SHORT).show());
+        phoneLoginButton.setOnClickListener(v -> {
+            Toast.makeText(this, "Phone OTP coming soon!", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Phone OTP feature clicked - coming soon");
+        });
         googleSignInButton.setOnClickListener(v -> signInWithGoogle());
     }
 
@@ -79,21 +87,28 @@ public class MainActivity extends AppCompatActivity {
 
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Login attempt failed: Email or password fields empty");
             return;
         }
 
-        // Get selected role from radio buttons
         int selectedRoleId = roleRadioGroup.getCheckedRadioButtonId();
+        if (selectedRoleId == -1) {
+            Toast.makeText(this, "Please select a role", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Login attempt failed: No role selected");
+            return;
+        }
         RadioButton selectedRoleButton = findViewById(selectedRoleId);
-        String role = selectedRoleButton.getText().toString().trim().toLowerCase(); // e.g., "student", "teacher", "admin"
+        String role = selectedRoleButton.getText().toString().trim().toLowerCase();
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        checkUserRole(user, role); // Pass the selected role
+                        Log.d(TAG, "Email login successful for user: " + user.getEmail());
+                        checkUserRole(user, role);
                     } else {
                         Toast.makeText(this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Login failed: " + task.getException().getMessage());
                     }
                 });
     }
@@ -101,11 +116,13 @@ public class MainActivity extends AppCompatActivity {
     private void startRegisterActivity() {
         Intent intent = new Intent(this, RegisterActivity.class);
         startActivity(intent);
+        Log.d(TAG, "Navigating to RegisterActivity");
     }
 
     private void signInWithGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
+        Log.d(TAG, "Starting Google Sign-In intent");
     }
 
     @Override
@@ -115,9 +132,11 @@ public class MainActivity extends AppCompatActivity {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
+                Log.d(TAG, "Google Sign-In successful for account: " + account.getEmail());
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
                 Toast.makeText(this, "Google sign-in failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Google Sign-In failed: " + e.getMessage());
             }
         }
     }
@@ -128,9 +147,11 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
+                        Log.d(TAG, "Google authentication successful for user: " + user.getEmail());
                         saveUserRole(user, "student"); // Default role as student for Google Sign-In
                     } else {
                         Toast.makeText(this, "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Google authentication failed: " + task.getException().getMessage());
                     }
                 });
     }
@@ -159,31 +180,38 @@ public class MainActivity extends AppCompatActivity {
                 .set(userData)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "User registered as " + role, Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "User registered successfully as " + role + " in collection: " + collection);
                     goToDashboard(role);
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Error saving role: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error saving role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error saving role for user " + user.getEmail() + ": " + e.getMessage());
+                });
     }
 
     private void checkUserRole(FirebaseUser user, String selectedRole) {
         if (user != null) {
-            String collection = selectedRole.substring(0, 1).toUpperCase() + selectedRole.substring(1); // e.g., "Student", "Teacher", "Admin"
+            String collection = selectedRole.substring(0, 1).toUpperCase() + selectedRole.substring(1);
             db.collection(collection).document(user.getUid())
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
-                            goToDashboard(selectedRole.toLowerCase()); // Use lowercase for consistency
+                            Log.d(TAG, "User " + user.getEmail() + " found in " + collection + " collection");
+                            goToDashboard(selectedRole);
                         } else {
-                            Toast.makeText(this, "User not found. Please register or check credentials.", Toast.LENGTH_SHORT).show();
-                            mAuth.signOut(); // Log out the user if not found
+                            Toast.makeText(this, "User not found in " + selectedRole + " role. Please register.", Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "User " + user.getEmail() + " not found in " + collection + " collection");
+                            mAuth.signOut();
                         }
                     })
                     .addOnFailureListener(e -> {
-                        Log.e("Login", "Error checking role " + selectedRole + ": " + e.getMessage());
-                        Toast.makeText(this, "Login failed: Error checking role - " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Role verification failed. Please try again.", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Role verification failed for user " + user.getEmail() + ": " + e.getMessage());
                         mAuth.signOut();
                     });
         } else {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "User not authenticated during role check");
         }
     }
 
@@ -201,10 +229,11 @@ public class MainActivity extends AppCompatActivity {
                 break;
             default:
                 Toast.makeText(this, "Invalid role: " + role, Toast.LENGTH_SHORT).show();
-                Log.w("Login", "Invalid role detected: " + role);
+                Log.w(TAG, "Invalid role detected: " + role);
                 return;
         }
         startActivity(intent);
         finish();
+        Log.d(TAG, "Navigating to " + role + " dashboard");
     }
 }

@@ -1,18 +1,23 @@
 package com.example.exam_portal_app;
 
+import static android.content.ContentValues.TAG;
+
 import android.os.Bundle;
-import android.view.View;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,7 +71,7 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        if (!isValidEmail(email)) {
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             Toast.makeText(this, "Invalid email format", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -87,7 +92,6 @@ public class RegisterActivity extends AppCompatActivity {
                         } else {
                             Toast.makeText(this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
-                        task.getException().printStackTrace();
                     }
                 });
     }
@@ -97,16 +101,21 @@ public class RegisterActivity extends AppCompatActivity {
         userData.put("name", name);
         userData.put("email", user.getEmail());
 
-        String collection = role.substring(0, 1).toUpperCase() + role.substring(1); // e.g., "Student", "Teacher", "Admin"
+        String collection = role.substring(0, 1).toUpperCase() + role.substring(1);
         db.collection(collection).document(user.getUid())
                 .set(userData)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Registration successful as " + role, Toast.LENGTH_SHORT).show();
-                    finish(); // Return to MainActivity
+                    Log.d(TAG, "User registered successfully as " + role + " in " + collection);
+                    finish();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error saving details: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    e.printStackTrace();
+                    Log.e(TAG, "Error saving details for user " + user.getEmail() + ": " + e.getMessage());
+                    if (user != null) {
+                        user.delete();
+                        mAuth.signOut();
+                    }
                 });
     }
 
