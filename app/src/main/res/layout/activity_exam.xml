@@ -9,9 +9,9 @@
         android:id="@+id/examTitleTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingBottom="8dp"
         android:textSize="20sp"
-        android:textStyle="bold"
-        android:paddingBottom="8dp" />
+        android:textStyle="bold" />
 
     <LinearLayout
         android:id="@+id/questionsLayout"
@@ -25,7 +25,7 @@
         android:id="@+id/submitExamButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Submit Exam"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="16dp"
+        android:text="Submit Exam" />
 
 </LinearLayout>

@@ -9,8 +9,8 @@
         android:id="@+id/questionText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:paddingBottom="8dp" />
+        android:paddingBottom="8dp"
+        android:textSize="16sp" />
 
     <LinearLayout
         android:id="@+id/optionsLayout"
@@ -23,16 +23,16 @@
         android:id="@+id/answerEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:hint="Enter your answer"
-        android:visibility="gone"
-        android:layout_marginTop="8dp" />
+        android:visibility="gone" />
 
     <EditText
         android:id="@+id/codeEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:hint="Enter your code"
-        android:visibility="gone"
-        android:layout_marginTop="8dp" />
+        android:visibility="gone" />
 
 </LinearLayout>

@@ -12,7 +12,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ManageQuestionsActivity extends AppCompatActivity {
 
@@ -20,6 +22,7 @@ public class ManageQuestionsActivity extends AppCompatActivity {
     private QuestionAdapter questionAdapter;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private boolean isTeacherVerified = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,11 +35,12 @@ public class ManageQuestionsActivity extends AppCompatActivity {
 
         // Verify user is a teacher before proceeding
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null || !isTeacher(user)) {
-            Toast.makeText(this, "Access denied. Only teachers can manage questions.", Toast.LENGTH_SHORT).show();
+        if (user == null) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
+        verifyTeacherRole(user);
 
         // UI elements
         questionsRecyclerView = findViewById(R.id.questionsRecyclerView);
@@ -47,28 +51,43 @@ public class ManageQuestionsActivity extends AppCompatActivity {
         questionAdapter = new QuestionAdapter(question -> showQuestionDialog(question), this);
         questionsRecyclerView.setAdapter(questionAdapter);
 
-        // Load questions
-        loadQuestions();
+        // Load questions only if teacher role is verified
+        if (isTeacherVerified) {
+            loadQuestions();
+        }
 
         // Add question button click
-        addQuestionButton.setOnClickListener(v -> showQuestionDialog(null));
+        addQuestionButton.setOnClickListener(v -> {
+            if (isTeacherVerified) {
+                showQuestionDialog(null);
+            } else {
+                Toast.makeText(this, "Teacher role not verified. Please wait.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private boolean isTeacher(FirebaseUser user) {
+    private void verifyTeacherRole(FirebaseUser user) {
         String email = user.getEmail();
-        String normalizedName = (user.getDisplayName() != null ? user.getDisplayName() : "unknown").toLowerCase().replace(" ", "-") + "-" + email.replace("@", "-").replace(".", "-");
+        String normalizedName = (user.getDisplayName() != null ? user.getDisplayName().trim() : "unknown").toLowerCase().replace(" ", "-") + "-" + email.replace("@", "-").replace(".", "-");
+
         db.collection("Teacher").document(normalizedName).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (!documentSnapshot.exists()) {
-                        return false;
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        com.google.firebase.firestore.DocumentSnapshot document = task.getResult();
+                        if (document.exists() && document.getString("uid") != null && document.getString("uid").equals(user.getUid())) {
+                            isTeacherVerified = true;
+                            // Reload questions after verification
+                            loadQuestions();
+                            Toast.makeText(ManageQuestionsActivity.this, "Teacher role verified", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(ManageQuestionsActivity.this, "Access denied. You are not a teacher.", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    } else {
+                        Toast.makeText(ManageQuestionsActivity.this, "Error verifying role: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        finish();
                     }
-                    return true;
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error verifying role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    return false;
                 });
-        return false; // Default return for safety
     }
 
     private void loadQuestions() {

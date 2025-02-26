@@ -12,7 +12,8 @@ public class Question implements Serializable {
     private String codeTemplate; // For coding questions
     private String examId;
 
-    public Question() {}
+    public Question() {
+    }
 
     public Question(String id, String questionText, String type, List<String> options, String correctAnswer, String codeTemplate, String examId) {
         this.id = id;
@@ -25,22 +26,62 @@ public class Question implements Serializable {
     }
 
     // Getters
-    public String getId() { return id; }
-    public String getQuestionText() { return questionText; }
-    public String getType() { return type; }
-    public List<String> getOptions() { return options; }
-    public String getCorrectAnswer() { return correctAnswer; }
-    public String getCodeTemplate() { return codeTemplate; }
-    public String getExamId() { return examId; }
+    public String getId() {
+        return id;
+    }
 
     // Setters
-    public void setId(String id) { this.id = id; }
-    public void setQuestionText(String questionText) { this.questionText = questionText; }
-    public void setType(String type) { this.type = type; }
-    public void setOptions(List<String> options) { this.options = options; }
-    public void setCorrectAnswer(String correctAnswer) { this.correctAnswer = correctAnswer; }
-    public void setCodeTemplate(String codeTemplate) { this.codeTemplate = codeTemplate; }
-    public void setExamId(String examId) { this.examId = examId; }
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getQuestionText() {
+        return questionText;
+    }
+
+    public void setQuestionText(String questionText) {
+        this.questionText = questionText;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public List<String> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<String> options) {
+        this.options = options;
+    }
+
+    public String getCorrectAnswer() {
+        return correctAnswer;
+    }
+
+    public void setCorrectAnswer(String correctAnswer) {
+        this.correctAnswer = correctAnswer;
+    }
+
+    public String getCodeTemplate() {
+        return codeTemplate;
+    }
+
+    public void setCodeTemplate(String codeTemplate) {
+        this.codeTemplate = codeTemplate;
+    }
+
+    public String getExamId() {
+        return examId;
+    }
+
+    public void setExamId(String examId) {
+        this.examId = examId;
+    }
 
     // Method to check if an answer is correct (for MCQ/subjective)
     public boolean isCorrect(String userAnswer) {

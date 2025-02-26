@@ -34,16 +34,47 @@ public class Exam implements Serializable {
     }
 
     // Getters and setters
-    public String getId() { return id; }
-    public String getTitle() { return title; }
-    public long getStartTime() { return startTime; }
-    public long getEndTime() { return endTime; }
-    public int getDuration() { return duration; }
-    public String getCreated_by() { return created_by; }
-    public String getTeacher_name() { return teacher_name; }
-    public int getMaxAttempts() { return maxAttempts; }
-    public String getQuestionTypes() { return questionTypes; }
-    public List<String> getQuestions() { return questions; }
+    public String getId() {
+        return id;
+    }
 
-    public void setQuestions(List<String> questions) { this.questions = questions; }
+    public String getTitle() {
+        return title;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public String getCreated_by() {
+        return created_by;
+    }
+
+    public String getTeacher_name() {
+        return teacher_name;
+    }
+
+    public int getMaxAttempts() {
+        return maxAttempts;
+    }
+
+    public String getQuestionTypes() {
+        return questionTypes;
+    }
+
+    public List<String> getQuestions() {
+        return questions;
+    }
+
+    public void setQuestions(List<String> questions) {
+        this.questions = questions;
+    }
 }

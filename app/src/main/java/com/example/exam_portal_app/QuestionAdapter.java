@@ -6,20 +6,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.QuestionViewHolder> {
 
+    private final AppCompatActivity activity;
     private List<Question> questions;
     private OnQuestionClickListener listener;
-    private final AppCompatActivity activity;
-
-    public interface OnQuestionClickListener {
-        void onQuestionClick(Question question);
-    }
 
     public QuestionAdapter(OnQuestionClickListener listener, AppCompatActivity activity) {
         this.questions = new ArrayList<>();
@@ -82,6 +80,10 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Questi
     @Override
     public int getItemCount() {
         return questions.size();
+    }
+
+    public interface OnQuestionClickListener {
+        void onQuestionClick(Question question);
     }
 
     static class QuestionViewHolder extends RecyclerView.ViewHolder {
