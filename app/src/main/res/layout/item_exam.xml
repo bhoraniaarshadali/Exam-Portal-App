@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="200dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
     app:cardCornerRadius="8dp"
@@ -17,82 +18,82 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Exam Name"
-            android:textColor="#673AB7"
+            android:textColor="@android:color/holo_purple"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Exam Name" />
 
         <TextView
             android:id="@+id/teacherNameTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Created by: Arshadali Bhorania"
-            android:textColor="#757575"
+            android:textColor="@android:color/darker_gray"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/examTitleTextView" />
+            app:layout_constraintTop_toBottomOf="@id/examTitleTextView"
+            tools:text="Created by: Teacher Name" />
 
         <TextView
             android:id="@+id/questionsTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Questions: 0"
-            android:textColor="#757575"
+            android:textColor="@android:color/darker_gray"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/teacherNameTextView" />
+            app:layout_constraintTop_toBottomOf="@id/teacherNameTextView"
+            tools:text="Questions: 0" />
 
         <TextView
             android:id="@+id/durationTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Duration: 60 min"
-            android:textColor="#757575"
+            android:textColor="@android:color/darker_gray"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/questionsTextView" />
+            app:layout_constraintTop_toBottomOf="@id/questionsTextView"
+            tools:text="Duration: 60 min" />
 
         <TextView
             android:id="@+id/startTimeTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Starts: YYYY-MM-DD HH:MM"
-            android:textColor="#757575"
+            android:textColor="@android:color/darker_gray"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/durationTextView" />
+            app:layout_constraintTop_toBottomOf="@id/durationTextView"
+            tools:text="Starts: YYYY-MM-DD HH:MM" />
 
         <TextView
             android:id="@+id/endTimeTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Ends: YYYY-MM-DD HH:MM"
-            android:textColor="#757575"
+            android:textColor="@android:color/darker_gray"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/startTimeTextView" />
+            app:layout_constraintTop_toBottomOf="@id/startTimeTextView"
+            tools:text="Ends: YYYY-MM-DD HH:MM" />
 
         <Button
             android:id="@+id/startExamButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:backgroundTint="#673AB7"
+            android:backgroundTint="@android:color/holo_purple"
             android:text="Start"
-            android:textColor="#FFFFFF"
+            android:textAllCaps="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/endTimeTextView" />
 

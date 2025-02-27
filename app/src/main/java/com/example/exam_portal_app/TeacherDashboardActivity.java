@@ -14,7 +14,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -24,7 +23,7 @@ import java.util.Map;
 
 public class TeacherDashboardActivity extends AppCompatActivity {
 
-    private static final String TAG = "TeacherDashboard"; // Log tag for debugging
+    private static final String TAG = "TeacherDashboard";
 
     private EditText examTitleEditText, examDurationEditText;
     private Button examStartTimeButton, examEndTimeButton, scheduleExamButton;
@@ -48,139 +47,168 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
             Log.e(TAG, "User not authenticated on dashboard load");
+            startActivity(new Intent(this, MainActivity.class));
             finish();
+            return;
         }
 
-        // UI elements
+        // Initialize UI elements
+        initializeViews();
+
+        // Set click listeners
+        setupClickListeners();
+    }
+
+    private void initializeViews() {
         examTitleEditText = findViewById(R.id.examTitleEditText);
         examDurationEditText = findViewById(R.id.examDurationEditText);
         examStartTimeButton = findViewById(R.id.examStartTimeButton);
         examEndTimeButton = findViewById(R.id.examEndTimeButton);
         scheduleExamButton = findViewById(R.id.scheduleExamButton);
+    }
 
-        // Set click listeners for date/time buttons
+    private void setupClickListeners() {
         examStartTimeButton.setOnClickListener(v -> showDateTimePicker(true));
         examEndTimeButton.setOnClickListener(v -> showDateTimePicker(false));
-
-        // Schedule exam button click (after login & registration commit)
-        scheduleExamButton.setOnClickListener(v -> startActivity(new Intent(this, AddExamActivity.class)));
+        scheduleExamButton.setOnClickListener(v -> scheduleExam());
     }
 
     private void checkTeacherRole(FirebaseUser user) {
-        // Use UID consistent with RegisterActivity and MainActivity
         db.collection("Teacher").document(user.getUid())
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Log.d(TAG, "Teacher role verified for user: " + user.getEmail() + ", UID: " + user.getUid());
-                        // Teacher role confirmed, proceed with dashboard
-                    } else {
+                    if (!documentSnapshot.exists()) {
                         Toast.makeText(this, "Access denied. You are not registered as a teacher.", Toast.LENGTH_LONG).show();
-                        Log.w(TAG, "User " + user.getEmail() + " not found in Teacher collection, UID: " + user.getUid());
+                        Log.w(TAG, "User " + user.getEmail() + " not found in Teacher collection");
                         mAuth.signOut();
+                        startActivity(new Intent(this, MainActivity.class));
                         finish();
                     }
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error verifying teacher role: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "Role verification failed for " + user.getEmail() + ": " + e.getMessage());
+                    Log.e(TAG, "Role verification failed: " + e.getMessage());
                     mAuth.signOut();
+                    startActivity(new Intent(this, MainActivity.class));
                     finish();
                 });
     }
 
     private void showDateTimePicker(boolean isStartTime) {
-        final Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int minute = calendar.get(Calendar.MINUTE);
+        Calendar calendar = Calendar.getInstance();
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (datePicker, year, month, day) -> {
+                    TimePickerDialog timePickerDialog = new TimePickerDialog(
+                            this,
+                            (timePicker, hour, minute) -> {
+                                calendar.set(year, month, day, hour, minute);
+                                long timeMillis = calendar.getTimeInMillis();
 
-        new DatePickerDialog(this, (datePicker, selectedYear, selectedMonth, selectedDay) -> {
-            new TimePickerDialog(this, (timePicker, selectedHour, selectedMinute) -> {
-                calendar.set(selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute);
-                long timeMillis = calendar.getTimeInMillis();
-
-                if (isStartTime) {
-                    startTime = timeMillis;
-                    examStartTimeButton.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(calendar.getTime()));
-                } else {
-                    endTime = timeMillis;
-                    examEndTimeButton.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(calendar.getTime()));
-                }
-
-                if (startTime != 0 && endTime != 0 && endTime <= startTime) {
-                    Toast.makeText(this, "End time must be after start time", Toast.LENGTH_SHORT).show();
-                    endTime = 0;
-                    examEndTimeButton.setText("Select End Time");
-                }
-            }, hour, minute, true).show();
-        }, year, month, day).show();
+                                if (isStartTime) {
+                                    if (timeMillis < System.currentTimeMillis()) {
+                                        Toast.makeText(this, "Start time cannot be in the past", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
+                                    startTime = timeMillis;
+                                    examStartTimeButton.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(calendar.getTime()));
+                                } else {
+                                    if (timeMillis <= startTime) {
+                                        Toast.makeText(this, "End time must be after start time", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
+                                    endTime = timeMillis;
+                                    examEndTimeButton.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(calendar.getTime()));
+                                }
+                            },
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            true
+                    );
+                    timePickerDialog.show();
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.show();
     }
 
     private void scheduleExam() {
         String title = examTitleEditText.getText().toString().trim();
         String durationStr = examDurationEditText.getText().toString().trim();
 
-        if (title.isEmpty() || durationStr.isEmpty() || startTime == 0 || endTime == 0) {
-            Toast.makeText(this, "Please fill all fields and select times", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (validateExamData(title, durationStr)) {
+            try {
+                int duration = Integer.parseInt(durationStr);
+                FirebaseUser user = mAuth.getCurrentUser();
+                if (user == null) {
+                    Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-        try {
-            int duration = Integer.parseInt(durationStr);
+                Map<String, Object> examData = createExamData(title, duration, user);
+                saveExamToFirestore(examData);
 
-            if (endTime <= startTime) {
-                Toast.makeText(this, "End time must be after start time", Toast.LENGTH_SHORT).show();
-                return;
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "Invalid duration format", Toast.LENGTH_SHORT).show();
+                Log.w(TAG, "Invalid duration input: " + durationStr);
             }
-
-            FirebaseUser user = mAuth.getCurrentUser();
-            String email = user.getEmail();
-            String displayName = user.getDisplayName() != null ? user.getDisplayName() : "Unknown Teacher";
-
-            Map<String, Object> examData = new HashMap<>();
-            examData.put("title", title);
-            examData.put("duration", duration);
-            examData.put("start_time", startTime);
-            examData.put("end_time", endTime);
-            examData.put("created_by", user.getUid()); // Use UID here for consistency
-            examData.put("teacher_name", displayName); // Human-readable name
-            examData.put("max_attempts", 1);
-            examData.put("question_types", "MCQ");
-
-            db.collection("exams").add(examData)
-                    .addOnSuccessListener(documentReference -> {
-                        Toast.makeText(this, "Exam scheduled!", Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "Exam " + title + " scheduled by " + email + ", UID: " + user.getUid());
-                        sendNotificationToStudents(title, new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(startTime));
-                        clearFields();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Error scheduling exam: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        Log.e(TAG, "Failed to schedule exam by " + email + ": " + e.getMessage());
-                        if (e.getMessage().contains("PERMISSION_DENIED")) {
-                            Toast.makeText(this, "Permission denied. Contact admin.", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-        } catch (NumberFormatException e) {
-            Toast.makeText(this, "Invalid duration format", Toast.LENGTH_SHORT).show();
-            Log.w(TAG, "Invalid duration input: " + durationStr);
         }
     }
 
-    private void sendNotificationToStudents(String examTitle, String startTime) {
-        FirebaseMessaging.getInstance().subscribeToTopic("students")
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(this, "Notified students about " + examTitle, Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "Notification sent for exam: " + examTitle + " at " + startTime);
-                    } else {
-                        Log.w(TAG, "Failed to subscribe to students topic: " + task.getException().getMessage());
-                    }
+    private boolean validateExamData(String title, String durationStr) {
+        if (title.isEmpty() || durationStr.isEmpty()) {
+            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (startTime == 0 || endTime == 0) {
+            Toast.makeText(this, "Please select start and end times", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
+    }
+
+    private Map<String, Object> createExamData(String title, int duration, FirebaseUser user) {
+        Map<String, Object> examData = new HashMap<>();
+        examData.put("title", title);
+        examData.put("duration", duration);
+        examData.put("start_time", startTime);
+        examData.put("end_time", endTime);
+        examData.put("created_by", user.getUid());
+        examData.put("teacher_name", user.getDisplayName() != null ? user.getDisplayName() : "Unknown Teacher");
+        examData.put("max_attempts", 1);
+        examData.put("question_types", "MCQ");
+        examData.put("status", "scheduled");
+        return examData;
+    }
+
+    private void saveExamToFirestore(Map<String, Object> examData) {
+        db.collection("exams")
+                .add(examData)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(this, "Exam scheduled successfully!", Toast.LENGTH_SHORT).show();
+                    sendNotificationToStudents((String) examData.get("title"),
+                            new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(startTime));
+                    clearFields();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to schedule exam: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Failed to schedule exam: " + e.getMessage());
                 });
+    }
+
+    private void sendNotificationToStudents(String examTitle, String startTime) {
+        Map<String, String> notification = new HashMap<>();
+        notification.put("title", "New Exam Scheduled");
+        notification.put("body", examTitle + " scheduled for " + startTime);
+
+        db.collection("notifications")
+                .add(notification)
+                .addOnSuccessListener(documentReference ->
+                        Log.d(TAG, "Notification saved for exam: " + examTitle))
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Failed to save notification: " + e.getMessage()));
     }
 
     private void clearFields() {

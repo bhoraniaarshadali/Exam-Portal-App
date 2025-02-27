@@ -1,11 +1,13 @@
 package com.example.exam_portal_app;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -20,6 +22,7 @@ public class StudentDashboardActivity extends AppCompatActivity implements ExamA
     private ExamAdapter examAdapter;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,13 +40,19 @@ public class StudentDashboardActivity extends AppCompatActivity implements ExamA
             return;
         }
 
-        // UI elements
+        // Initialize views
         examsRecyclerView = findViewById(R.id.examsRecyclerView);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+
+        // Setup RecyclerView
         examsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        examAdapter = new ExamAdapter(this); // Pass this activity as the listener
+        examAdapter = new ExamAdapter(this);
         examsRecyclerView.setAdapter(examAdapter);
 
-        // Load available exams
+        // Setup pull to refresh
+        swipeRefreshLayout.setOnRefreshListener(this::loadAvailableExams);
+
+        // Initial load
         loadAvailableExams();
     }
 
@@ -54,30 +63,48 @@ public class StudentDashboardActivity extends AppCompatActivity implements ExamA
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Exam> examList = new ArrayList<>();
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        String id = document.getId();
-                        String title = document.getString("title");
-                        long startTime = document.getLong("start_time");
-                        long endTime = document.getLong("end_time");
-                        int duration = document.getLong("duration").intValue();
-                        String createdBy = document.getString("created_by");
-                        String teacherName = document.getString("teacher_name");
-                        int maxAttempts = document.getLong("max_attempts").intValue();
-                        String questionTypes = document.getString("question_types");
-                        List<String> questions = (List<String>) document.get("questions"); // Retrieve questions field
+                        try {
+                            String id = document.getId();
+                            String title = document.getString("title");
+                            long startTime = document.getLong("start_time");
+                            long endTime = document.getLong("end_time");
+                            int duration = document.getLong("duration").intValue();
+                            String createdBy = document.getString("created_by");
+                            String teacherName = document.getString("teacher_name");
+                            int maxAttempts = document.getLong("max_attempts").intValue();
+                            String questionTypes = document.getString("question_types");
+                            List<String> questions = (List<String>) document.get("questions");
 
-                        // Create Exam object with all parameters
-                        Exam exam = new Exam(id, title, startTime, endTime, duration, createdBy, teacherName, maxAttempts, questionTypes, questions);
-                        examList.add(exam);
+                            if (id != null && title != null && startTime > 0 && endTime > 0) {
+                                Exam exam = new Exam(id, title, startTime, endTime, duration,
+                                        createdBy, teacherName, maxAttempts, questionTypes, questions);
+                                examList.add(exam);
+                            }
+                        } catch (Exception e) {
+                            // Skip invalid exam entries
+                            continue;
+                        }
                     }
                     examAdapter.setExamList(examList);
+                    if (swipeRefreshLayout != null) {
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Error loading available exams: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error loading exams: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                    if (swipeRefreshLayout != null) {
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                });
     }
 
     @Override
     public void onExamStart(Exam exam) {
-        // Handle exam start (e.g., navigate to ExamActivity)
-        Toast.makeText(this, "Starting exam: " + exam.getTitle(), Toast.LENGTH_SHORT).show();
-        // Add navigation logic here (e.g., start ExamActivity with exam data)
+        if (exam != null) {
+            Intent intent = new Intent(this, ExamActivity.class);
+            intent.putExtra("exam", exam);
+            startActivity(intent);
+        }
     }
 }

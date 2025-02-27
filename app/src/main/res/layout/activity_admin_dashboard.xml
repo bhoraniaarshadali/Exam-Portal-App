@@ -1,26 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    tools:context=".AdminDashboardActivity">
 
     <TextView
         android:id="@+id/adminDashboardTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Admin Dashboard"
-        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/manageUsersButton"
+        android:id="@+id/addExamButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="@android:color/holo_blue_dark"
         android:text="Manage Users"
+        android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/adminDashboardTitle" />
@@ -29,30 +34,53 @@
         android:id="@+id/manageExamsButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@android:color/holo_green_dark"
         android:text="Manage Exams"
+        android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/manageUsersButton" />
+        app:layout_constraintTop_toBottomOf="@id/addExamButton" />
 
     <Button
-        android:id="@+id/viewActivityButton"
+        android:id="@+id/monitorActivityButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@android:color/holo_orange_dark"
         android:text="View Activity"
+        android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/manageExamsButton" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/activityRecyclerView"
+    <!-- Tab Layout for Admin Sections -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10sp"
+        app:layout_constraintBottom_toTopOf="@+id/viewPager"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/viewActivityButton" />
+        app:layout_constraintTop_toBottomOf="@+id/monitorActivityButton"
+        app:tabIndicatorColor="#FFFFFF"
+        app:tabSelectedTextColor="#FFFFFF"
+        app:tabTextColor="#757575" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/viewPager"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tabLayout"
+        tools:listitem="@android:layout/simple_list_item_1" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

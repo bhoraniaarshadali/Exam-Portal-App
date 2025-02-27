@@ -17,6 +17,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Question Text"
+            android:textColor="@android:color/black"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
@@ -29,6 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="Details"
+            android:textColor="@android:color/darker_gray"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -39,8 +41,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:layout_marginRight="8sp"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="@android:color/holo_blue_dark"
             android:text="Edit"
+            android:textAllCaps="false"
             app:layout_constraintEnd_toStartOf="@id/deleteButton"
             app:layout_constraintTop_toBottomOf="@id/detailsTextView" />
 
@@ -48,7 +52,9 @@
             android:id="@+id/deleteButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:backgroundTint="@android:color/holo_red_dark"
             android:text="Delete"
+            android:textAllCaps="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/editButton" />
 

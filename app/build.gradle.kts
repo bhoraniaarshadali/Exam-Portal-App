@@ -34,35 +34,31 @@ android {
 }
 
 dependencies {
-    implementation(libs.cardview)
-    implementation(libs.material)
-    implementation(libs.google.firebase.auth)
-    implementation(libs.google.firebase.firestore)
-    implementation(libs.cardview)
-    implementation(libs.material.v190)
-    implementation(libs.viewpager2)
-    implementation(libs.google.firebase.auth)
-    implementation(libs.google.firebase.firestore)
-    implementation(libs.google.firebase.messaging)
 
-    implementation(libs.recyclerview)
 
-    // Google Sign-In
-    implementation(libs.play.services.auth)
-
-    // CardView
-    implementation(libs.cardview)
-    // Firebase dependencies
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)           // Authentication
-    implementation(libs.firebase.firestore)      // Firestore
-    implementation(libs.firebase.messaging)     // Notifications
-
+    // AndroidX core dependencies
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.recyclerview)
+    implementation(libs.viewpager2)
+    implementation(libs.cardview) // Single cardview implementation
+
+    // Firebase dependencies using BoM
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.messaging)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.google.firebase.auth)
+    implementation(libs.google.firebase.firestore)
+
+    // Google Sign-In
+    implementation(libs.play.services.auth)
+    implementation(libs.swiperefreshlayout)
+
+    // Testing dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

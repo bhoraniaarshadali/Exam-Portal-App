@@ -10,6 +10,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Exam Title"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:maxLines="1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -20,7 +23,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="Duration (minutes)"
+        android:importantForAutofill="no"
         android:inputType="number"
+        android:maxLength="3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/examTitleEditText" />
@@ -30,8 +35,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Select Start Time"
         android:text="Select Start Time"
+        android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/examDurationEditText" />
@@ -41,8 +46,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="Select End Time"
         android:text="Select End Time"
+        android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/examStartTimeButton" />
@@ -53,6 +58,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="Subject"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:maxLines="1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/examEndTimeButton" />
@@ -63,6 +71,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Schedule Exam"
+        android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/examSubjectEditText" />
@@ -73,6 +82,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Manage Questions"
+        android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/scheduleExamButton" />

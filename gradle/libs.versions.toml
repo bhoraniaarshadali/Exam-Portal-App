@@ -19,6 +19,7 @@ materialVersion = "1.9.0"
 playServicesAuth = "21.3.0"
 recyclerview = "1.4.0"
 viewpager2 = "1.1.0"
+swiperefreshlayout = "1.1.0"
 
 [libraries]
 cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
@@ -41,6 +42,7 @@ material-v190 = { module = "com.google.android.material:material", version.ref =
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
+swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

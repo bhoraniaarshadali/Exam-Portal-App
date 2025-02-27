@@ -10,7 +10,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:hint="Question Text" />
+        android:gravity="top"
+        android:hint="Question Text"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine"
+        android:minLines="2" />
 
     <Spinner
         android:id="@+id/typeSpinner"
@@ -30,7 +34,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
+        android:gravity="top"
         android:hint="Answer"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine"
+        android:minLines="3"
         android:visibility="gone" />
 
     <EditText
@@ -38,7 +46,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
+        android:fontFamily="monospace"
+        android:gravity="top"
         android:hint="Code Template"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine"
+        android:minLines="5"
         android:visibility="gone" />
 
     <Button
@@ -46,6 +59,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
+        android:backgroundTint="@android:color/holo_blue_light"
         android:text="Add Option"
         android:visibility="gone" />
 
@@ -53,12 +67,14 @@
         android:id="@+id/saveButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:backgroundTint="@android:color/holo_green_light"
         android:text="Save" />
 
     <Button
         android:id="@+id/deleteButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:backgroundTint="@android:color/holo_red_light"
         android:text="Delete"
         android:visibility="gone" />
 

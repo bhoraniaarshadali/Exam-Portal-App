@@ -10,12 +10,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="8dp"
-        android:textSize="16sp" />
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
     <LinearLayout
         android:id="@+id/optionsLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:orientation="vertical"
         android:visibility="gone" />
 
@@ -24,7 +27,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:background="@android:drawable/edit_text"
+        android:gravity="top"
         android:hint="Enter your answer"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine"
+        android:minLines="3"
+        android:padding="8dp"
         android:visibility="gone" />
 
     <EditText
@@ -32,7 +41,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:background="@android:drawable/edit_text"
+        android:fontFamily="monospace"
+        android:gravity="top"
         android:hint="Enter your code"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine"
+        android:minLines="5"
+        android:padding="8dp"
         android:visibility="gone" />
 
 </LinearLayout>
