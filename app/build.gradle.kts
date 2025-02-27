@@ -35,6 +35,8 @@ android {
 
 dependencies {
 
+    // For SwipeRefreshLayout
+    implementation(libs.swiperefreshlayout)
 
     // AndroidX core dependencies
     implementation(libs.appcompat)

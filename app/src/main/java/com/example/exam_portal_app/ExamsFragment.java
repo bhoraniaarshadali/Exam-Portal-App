@@ -24,7 +24,7 @@ public class ExamsFragment extends Fragment implements ExamAdapter.OnExamStartLi
     private RecyclerView examsRecyclerView;
     private ExamAdapter examAdapter;
     private FirebaseFirestore db;
-    private SwipeRefreshLayout swipeRefreshLayout;
+    private SwipeRefreshLayout swipeRefreshLayout; // Keep the variable declaration
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -32,7 +32,7 @@ public class ExamsFragment extends Fragment implements ExamAdapter.OnExamStartLi
 
         // Initialize views
         examsRecyclerView = view.findViewById(R.id.examsRecyclerView);
-        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout); // Initialize, but handle null case
 
         // Setup RecyclerView
         examsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -42,8 +42,10 @@ public class ExamsFragment extends Fragment implements ExamAdapter.OnExamStartLi
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
 
-        // Setup pull to refresh
-        swipeRefreshLayout.setOnRefreshListener(this::loadExams);
+        // Setup pull to refresh if swipeRefreshLayout exists
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setOnRefreshListener(this::loadExams);
+        }
 
         // Initial load
         loadExams();
